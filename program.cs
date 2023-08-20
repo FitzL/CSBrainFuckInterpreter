@@ -2,22 +2,30 @@ using System;
 using System.Text.RegularExpressions;
 using System.IO;
 
-namespace Brainfuck
-{
-	class Program
-	{
-		static void Main(String[] args)
-		{
+namespace Brainfuck {
+	class Program {
+		static void Main(String[] args) {
+			Console.WriteLine(String.Join(" ", args));
 			byte[] tape = new byte[32768]; //define a tape to store values
-			string input;
-			if (args.Length > 0) 
-			{
-				input = File.ReadAllText(@args[0]); //read contents of file
-			} 
-			else
-			{
+			string input = "";
+			if (args.Length > 0){
+				switch(args[0]){
+					case "-f":
+						input = File.ReadAllText(@args[1]);
+						break;
+					case "-c":
+						input = "+" + String.Join(" ", args);
+						break;
+					default:
+						Console.WriteLine("You can add options like \"-c\" for inputing code in the command line, or \"-f\" to open a spicific file.");
+						Console.Write("Give code: \n=> "); //ask user for code
+						input = Console.ReadLine();	//read user input
+						break;
+				}
+			} else {
+				Console.WriteLine("You can add options like \"-c\" for inputing code in the command line, or \"-f\" to open a spicific file.");
 				Console.Write("Give code: \n=> "); //ask user for code
-				input = Console.ReadLine();	//read user input
+				input = Console.ReadLine();	//read user input	
 			}
 			char[] code = Parser(input); //parse comments
 			Interpreter(code, tape); //run the interpreter
@@ -25,15 +33,12 @@ namespace Brainfuck
 			Console.ReadKey();
 		}
 
-		static char[] Parser(string _input)
-		{
+		static char[] Parser(string _input){
 			Regex operators = new Regex(@"[\+\-\,\.\[\]\<\>]"); //valid operators, ignore the rest
 			char[] input = _input.ToCharArray(); //take a string input and separate into characters
 			string output = ""; //create an output string
-			foreach (char i in input)
-			{
-				if (operators.IsMatch(Char.ToString(i))) //check every character for valid operations
-				{
+			foreach (char i in input){
+				if (operators.IsMatch(Char.ToString(i))){ //check every character for valid operations
 					output += i; //if valid, add to output
 				}
 			}
@@ -41,15 +46,12 @@ namespace Brainfuck
 			return output.ToCharArray();
 		}
 
-		static void Interpreter(char[] code, byte[] tape)
-		{
+		static void Interpreter(char[] code, byte[] tape){
 			int p = 0; //tape pointer
 			int i = 0; //code index
-			while (i < code.Length)
-			{
+			while (i < code.Length){
 				p = p % tape.Length; //make sure you can't go out of bounds
-				switch (code[i])
-				{
+				switch (code[i]){
 					case '+': //increment
 						tape[p]++;
 						break;
@@ -91,8 +93,7 @@ namespace Brainfuck
 				i++;
 			}
 		}
-		static int jmptoClose(char[] code, int i) //logic for jmp to, forwards
-		{
+		static int jmptoClose(char[] code, int i) {
 			i++;
 			int depth = 1;
 			while (depth > 0) //dealing with nesting
@@ -110,8 +111,7 @@ namespace Brainfuck
 			}
 			return i; 
 		}
-		static int jmptoOpen(char[] code, int i) //logic for jmping back
-		{
+		static int jmptoOpen(char[] code, int i) {
 			i--;
 			int depth = 1;
 			while (depth > 0) //nesting thing
